@@ -1,0 +1,8 @@
+{
+  "name": "EstimateAI SaaS Builder",
+  "description": "A SaaS platform allowing businesses to create and embed custom AI-powered cost estimation widgets.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
