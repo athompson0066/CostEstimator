@@ -47,7 +47,7 @@ const INITIAL_CONFIG: BusinessConfig = {
     enabled: true,
     destination: 'email',
     targetEmail: 'contact@swiftfix.com',
-    resendApiKey: '',
+    resendApiKey: localStorage.getItem('RESEND_API_KEY') || '',
     webhookUrl: '',
     slackWebhookUrl: '',
     twilioConfig: { accountSid: '', authToken: '', fromNumber: '', toNumber: '' },
@@ -120,6 +120,8 @@ const App: React.FC = () => {
 
   const [tempSupabaseUrl, setTempSupabaseUrl] = useState(getSupabaseConfig().url || '');
   const [tempSupabaseKey, setTempSupabaseKey] = useState(getSupabaseConfig().key || '');
+  const [tempResendKey, setTempResendKey] = useState(localStorage.getItem('RESEND_API_KEY') || '');
+  
   const [savedWidgets, setSavedWidgets] = useState<SavedWidget[]>([]);
   const [isLoadingWidgets, setIsLoadingWidgets] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -849,11 +851,31 @@ const App: React.FC = () => {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 max-lg mx-auto py-20">
                 <header className="text-center">
                   <h1 className="text-4xl font-black">Cloud Sync</h1>
+                  <p className="text-slate-500 mt-2">Configure Supabase and global API credentials.</p>
                 </header>
                 <section className="bg-white p-10 rounded-[3rem] border shadow-sm space-y-4">
-                  <input value={tempSupabaseUrl} onChange={e => setTempSupabaseUrl(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl" placeholder="Supabase URL" />
-                  <input type="password" value={tempSupabaseKey} onChange={e => setTempSupabaseKey(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl" placeholder="Anon Key" />
-                  <button onClick={() => { updateSupabaseConfig(tempSupabaseUrl, tempSupabaseKey); setCloudEnabled(true); alert("Synced."); }} className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black">Apply Configuration</button>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Supabase Project URL</label>
+                    <input value={tempSupabaseUrl} onChange={e => setTempSupabaseUrl(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl text-sm" placeholder="https://your-project.supabase.co" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Supabase Anon Key</label>
+                    <input type="password" value={tempSupabaseKey} onChange={e => setTempSupabaseKey(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl text-sm" placeholder="your-anon-key" />
+                  </div>
+                  <div className="space-y-1 border-t pt-4 mt-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Resend API Key (Global)</label>
+                    <input type="password" value={tempResendKey} onChange={e => setTempResendKey(e.target.value)} className="w-full p-4 bg-slate-50 border rounded-2xl text-sm" placeholder="re_your_key" />
+                  </div>
+                  <button onClick={() => { 
+                    updateSupabaseConfig(tempSupabaseUrl, tempSupabaseKey); 
+                    localStorage.setItem('RESEND_API_KEY', tempResendKey);
+                    setConfig(prev => ({ 
+                      ...prev, 
+                      leadGenConfig: { ...prev.leadGenConfig, resendApiKey: tempResendKey } 
+                    }));
+                    setCloudEnabled(true); 
+                    alert("Configuration Applied & Saved."); 
+                  }} className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black mt-4 shadow-xl shadow-indigo-100 hover:brightness-110 active:scale-95 transition-all">Apply Configuration</button>
                 </section>
               </motion.div>
             )}
