@@ -7,13 +7,16 @@ import { EstimateTask, EstimationResult, BusinessConfig, RecommendedService, Man
  * Finds the first '{' and last '}' to strip away any conversational preamble.
  */
 const cleanJson = (text: string) => {
-  let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-  const start = cleaned.indexOf('{');
-  const end = cleaned.lastIndexOf('}');
-  if (start !== -1 && end !== -1) {
-    cleaned = cleaned.substring(start, end + 1);
+  try {
+    const start = text.indexOf('{');
+    const end = text.lastIndexOf('}');
+    if (start !== -1 && end !== -1) {
+      return text.substring(start, end + 1);
+    }
+    return text.trim();
+  } catch (e) {
+    return text;
   }
-  return cleaned;
 };
 
 const getTemplateInstructions = (config?: EmailTemplateConfig) => {
@@ -41,27 +44,18 @@ MANDATORY HTML STRUCTURE (Branding):
 };
 
 /**
- * HIGH-SPEED MASTER CREW SCAN
- * Using gemini-2.5-flash for maximum speed and compatibility with user key.
+ * ULTRA-HIGH-SPEED MASTER CREW SCAN
+ * Using gemini-2.5-flash-lite-latest to avoid Vercel 10s timeouts.
  */
 export const performMasterScan = async (url: string, customInstruction?: string): Promise<Partial<BusinessConfig>> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: `Audit this business website immediately: ${url}.
+    model: 'gemini-2.5-flash-lite-latest',
+    contents: `QUICK AUDIT: ${url}. 
+    USER NOTE: ${customInstruction || ""}
     
-    USER DIRECTIVE: ${customInstruction || ""}
-
-    Return a JSON config object containing:
-    1. name, industry, primaryColor (hex).
-    2. services (array of top 6 services).
-    3. pricingRules (concise string).
-    4. pricingKnowledgeBase (concise string).
-    5. manualPriceList (3 example items with id, label, price).
-    6. curatedRecommendations (3 upsell items with id, label, description, suggestedPrice, isApproved: true).
-    7. suggestedQuestions (Exactly 3 TWO-WORD questions like "Fix leak?").
-
-    Format as pure JSON.`,
+    TASK: Extract brand identity, 4-6 services, and typical pricing for this business. 
+    REQUIRED: Return a JSON object with: name, industry, primaryColor, services (array), pricingRules, manualPriceList (3 items), curatedRecommendations (3 items), suggestedQuestions (3 two-word questions).`,
     config: {
       tools: [{ googleSearch: {} }],
       responseMimeType: 'application/json',
@@ -102,7 +96,7 @@ export const performMasterScan = async (url: string, customInstruction?: string)
             }
           }
         },
-        required: ['name', 'industry', 'primaryColor', 'services', 'pricingRules', 'pricingKnowledgeBase', 'manualPriceList', 'curatedRecommendations', 'suggestedQuestions']
+        required: ['name', 'industry', 'primaryColor', 'services', 'pricingRules', 'manualPriceList', 'curatedRecommendations', 'suggestedQuestions']
       }
     }
   });
@@ -112,18 +106,10 @@ export const performMasterScan = async (url: string, customInstruction?: string)
 export const generateDetailedProposal = async (targetUrl: string, config: BusinessConfig): Promise<DetailedProposalResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: `Generate an enterprise proposal for ${targetUrl} based on our AI estimation SaaS.
-    
-    ${getTemplateInstructions(config.emailTemplate)}
-    
-    Instructions: ${config.proposalInstructions || "High ROI focus."}
-
-    Return JSON with title, executiveSummary, businessAnalysis, solutionArchitecture, roiAnalysis, investmentTableHtml, requirements (array), nextSteps, and htmlFull (full branded template).`,
-    config: {
-      tools: [{ googleSearch: {} }],
-      responseMimeType: 'application/json'
-    }
+    model: 'gemini-2.5-flash-lite-latest',
+    contents: `Proposal for ${targetUrl}. ${getTemplateInstructions(config.emailTemplate)} 
+    Return JSON with all proposal fields including htmlFull.`,
+    config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
   });
   return JSON.parse(cleanJson(response.text));
 };
@@ -131,15 +117,10 @@ export const generateDetailedProposal = async (targetUrl: string, config: Busine
 export const generateColdEmail = async (targetUrl: string, config: BusinessConfig): Promise<ColdEmailResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: `Conversion email for ${targetUrl}. 
-    ${getTemplateInstructions(config.emailTemplate)}
-    Instructions: ${config.outreachInstructions || "Focus on speed."}
-    Return JSON with 'subject' and 'html' (full branded template).`,
-    config: {
-      tools: [{ googleSearch: {} }],
-      responseMimeType: 'application/json'
-    }
+    model: 'gemini-2.5-flash-lite-latest',
+    contents: `Cold email for ${targetUrl}. ${getTemplateInstructions(config.emailTemplate)}
+    Return JSON with 'subject' and 'html'.`,
+    config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
   });
   return JSON.parse(cleanJson(response.text));
 };
@@ -147,13 +128,11 @@ export const generateColdEmail = async (targetUrl: string, config: BusinessConfi
 export const getEstimate = async (task: EstimateTask, config: BusinessConfig): Promise<EstimationResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: `Estimate for ${config.name}: ${task.description}. Zip: ${task.zipCode}.
+    model: 'gemini-2.5-flash-lite-latest',
+    contents: `Estimate for ${config.name}: ${task.description}. 
     ${getTemplateInstructions(config.emailTemplate)}
-    Return JSON with estimatedCostRange, laborEstimate, materialsEstimate, timeEstimate, tasks (array), emailHtml (full branded template).`,
-    config: {
-      responseMimeType: 'application/json'
-    }
+    Return JSON with cost range and emailHtml.`,
+    config: { responseMimeType: 'application/json' }
   });
   return JSON.parse(cleanJson(response.text));
 };
@@ -165,8 +144,8 @@ export const dispatchResendQuote = async (leadInfo: any, estimate: EstimationRes
 export const generateProductPricing = async (): Promise<ProductPricingResult> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: `Return JSON with 3 SaaS pricing plans for an AI widget business. Include 'analysis' (string) and 'plans' (array).`,
+    model: 'gemini-2.5-flash-lite-latest',
+    contents: `3 SaaS plans JSON.`,
     config: { responseMimeType: 'application/json' }
   });
   return JSON.parse(cleanJson(response.text));

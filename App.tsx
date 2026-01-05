@@ -127,11 +127,11 @@ const App: React.FC = () => {
     try {
       const masterData = await performMasterScan(urlToScan, config.customAgentInstruction);
       setConfig(prev => ({ ...prev, ...masterData }));
-      alert("Research complete! Crew found details and generated a profile.");
+      alert("Research complete! Profile updated with discovered data.");
       setActiveTab('services'); 
     } catch (error) {
       console.error(error);
-      alert("Research timed out or failed. This usually happens on Vercel if the scan takes over 10s. Try again with a direct URL.");
+      alert("Research took too long (Vercel 10s timeout). Please try a simpler URL or check your Gemini API key.");
     } finally { 
       setIsScanningUrl(false); 
       setUrlToScan(''); 
@@ -139,8 +139,8 @@ const App: React.FC = () => {
   };
 
   const handleCopyEmbedCode = () => {
-    // WordPress needs an absolute path to the module. We ensure it's correct for production.
-    const entryPath = `${window.location.origin}/index.tsx`;
+    // Vercel compiles TSX to JS. We point to index.js for production compatibility.
+    const entryPath = `${window.location.origin}/index.js`;
     const code = `<!-- EstimateAI Widget Bootstrap -->
 <div id="estimate-ai-root"></div>
 <script>
@@ -151,12 +151,12 @@ const App: React.FC = () => {
 
     if (navigator.clipboard) {
       navigator.clipboard.writeText(code).then(() => {
-        alert("Embed code copied! Paste this into a Custom HTML block in WordPress.");
+        alert("Embed code copied! Use a Custom HTML block in WordPress.");
       }).catch(() => {
-        alert("Copy failed. Please manually copy the code from the Launch Code tab.");
+        alert("Failed to copy. Please manually copy the code from the Launch Code tab.");
       });
     } else {
-      alert("Clipboard access not allowed. Please manually copy from the code box.");
+      alert("Clipboard access denied. Please manually copy from the box.");
     }
   };
 
@@ -195,11 +195,11 @@ const App: React.FC = () => {
             {activeTab === 'crew' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 text-center py-20">
                 <h1 className="text-4xl font-black">Agent Research</h1>
-                <p className="text-slate-500 mb-8">Using Gemini 2.5 Flash for high-speed website analysis.</p>
+                <p className="text-slate-500 mb-8">Using Gemini 2.5 Flash Lite (Low Latency) for fast audits.</p>
                 <form onSubmit={handleWebsiteScan} className="max-w-md mx-auto space-y-4">
                   <input type="url" value={urlToScan} onChange={e => setUrlToScan(e.target.value)} placeholder="https://client-site.com" className="w-full p-5 bg-white border-2 rounded-[2rem] text-center font-bold outline-none focus:border-indigo-600 shadow-sm" />
                   <button type="submit" disabled={isScanningUrl} className="w-full bg-indigo-600 text-white py-5 rounded-[2rem] font-black shadow-2xl hover:brightness-110 active:scale-95 transition-all">
-                    {isScanningUrl ? "Researching..." : "Launch Audit"}
+                    {isScanningUrl ? "Researching..." : "Launch Quick Audit"}
                   </button>
                 </form>
               </motion.div>
@@ -209,7 +209,7 @@ const App: React.FC = () => {
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
                 <header>
                   <h1 className="text-4xl font-black">Launch Code</h1>
-                  <p className="text-slate-500 mt-1">Paste this into a Custom HTML block on your site.</p>
+                  <p className="text-slate-500 mt-1">Paste this into a Custom HTML block on your WordPress site.</p>
                 </header>
                 <div className="p-8 bg-slate-900 rounded-3xl relative">
                   <pre className="text-indigo-400 text-[10px] overflow-auto font-mono leading-relaxed">
@@ -219,14 +219,13 @@ const App: React.FC = () => {
   window.ESTIMATE_AI_CONFIG = ${JSON.stringify(config, null, 2)};
   window.ESTIMATE_AI_WIDGET_ONLY = true;
 </script>
-<script src="${window.location.origin}/index.tsx" type="module"></script>`}
+<script src="${window.location.origin}/index.js" type="module"></script>`}
                   </pre>
                   <button onClick={handleCopyEmbedCode} className="absolute top-4 right-4 bg-white/10 text-white hover:bg-white/20 px-4 py-2 rounded-xl text-[10px] font-black uppercase">Copy Code</button>
                 </div>
               </motion.div>
             )}
 
-            {/* Other tabs handled by existing logic... */}
             {activeTab === 'settings' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 max-w-lg mx-auto py-20">
                 <header className="text-center">
@@ -254,7 +253,7 @@ const App: React.FC = () => {
                       leadGenConfig: { ...prev.leadGenConfig, resendApiKey: tempResendKey } 
                     }));
                     setCloudEnabled(true); 
-                    alert("Synced."); 
+                    alert("Credentials Updated."); 
                   }} className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black mt-4 shadow-xl hover:brightness-110 active:scale-95 transition-all">Apply & Save</button>
                 </section>
               </motion.div>
