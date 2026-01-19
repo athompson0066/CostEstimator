@@ -1,4 +1,9 @@
 
+export interface IntelligenceSource {
+  title: string;
+  url: string;
+}
+
 export interface MenuItem {
   label: string;
   url: string;
@@ -25,15 +30,8 @@ export interface EstimationResult {
   tasks: string[];
   recommendations: string[];
   caveats: string[];
-  upsellServices: string[];
+  suggestedUpsellIds: string[]; 
   emailHtml: string; 
-}
-
-export interface ColdEmailResult {
-  subject: string;
-  html: string;
-  recipientName: string;
-  businessName: string;
 }
 
 export interface ManualPriceItem {
@@ -103,13 +101,11 @@ export interface BusinessConfig {
   pricingRules: string;
   pricingKnowledgeBase: string; 
   customAgentInstruction: string; 
-  outreachInstructions?: string;
-  proposalInstructions?: string;
   googleSheetUrl?: string;
   useSheetData: boolean;
   manualPriceList: ManualPriceItem[];
   curatedRecommendations: RecommendedService[];
-  suggestedQuestions: string[]; // New field for the 3 two-word questions
+  suggestedQuestions: string[];
   upsellInstructions?: string;
   leadGenConfig: LeadGenConfig;
   defaultLanguage: string;
@@ -117,6 +113,11 @@ export interface BusinessConfig {
   resendApiKey?: string;
   pricingSpreadsheetCsv?: string;
   emailTemplate?: EmailTemplateConfig;
+  decisionMaker?: string;
+  serviceNiche?: string;
+  cityLocation?: string;
+  currentCta?: string;
+  intelligenceSources?: IntelligenceSource[];
 }
 
 export interface SavedWidget {
@@ -128,38 +129,17 @@ export interface SavedWidget {
   updated_at: string;
 }
 
-export interface ProductPricingPlan {
-  name: string;
-  setupFee: string;
-  monthlySubscription: string;
-  features: string[];
-  targetAudience: string;
-  strategicValue: string;
+export interface AppTab {
+  dashboard: 'dashboard';
+  crew: 'crew';
+  services: 'services';
+  design: 'design';
+  embed: 'embed';
+  leads: 'leads';
+  settings: 'settings';
 }
 
-export interface ProductPricingResult {
-  analysis: string;
-  plans: ProductPricingPlan[];
-}
-
-export interface DetailedProposalResult {
-  title: string;
-  executiveSummary: string;
-  businessAnalysis: string;
-  solutionArchitecture: string;
-  roiAnalysis: string;
-  investmentTableHtml: string;
-  requirements: string[];
-  nextSteps: string;
-  htmlFull?: string;
-}
-
-export interface AppFeature {
-  id: string;
-  label: string;
-  description: string;
-  icon: string;
-}
+export type AppTabType = keyof AppTab;
 
 export interface EstimateTask {
   description: string;
@@ -177,5 +157,3 @@ export enum WidgetState {
   LEAD_FORM = 'LEAD_FORM',
   SUCCESS = 'SUCCESS'
 }
-
-export type AppTab = 'dashboard' | 'crew' | 'services' | 'upsells' | 'outreach' | 'proposals' | 'leads' | 'pricing-strategist' | 'design' | 'embed' | 'settings';

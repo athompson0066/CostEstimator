@@ -5,41 +5,39 @@ import App from './App';
 import AIWidget from './components/AIWidget';
 import { BusinessConfig } from './types';
 
-const rootElement = document.getElementById('root') || document.getElementById('estimate-ai-root');
+const initApp = () => {
+  let rootElement = document.getElementById('estimate-ai-root') || document.getElementById('root');
 
-if (!rootElement) {
-  // If no root exists, create one and append to body (useful for automatic script injection)
-  const newRoot = document.createElement('div');
-  newRoot.id = 'estimate-ai-root';
-  document.body.appendChild(newRoot);
-  
-  const root = ReactDOM.createRoot(newRoot);
-  
-  // Check if we are in "Widget Only" mode via window global
-  const config = (window as any).ESTIMATE_AI_CONFIG as BusinessConfig;
-  const isWidgetOnly = (window as any).ESTIMATE_AI_WIDGET_ONLY === true;
-
-  if (isWidgetOnly && config) {
-    root.render(
-      <React.StrictMode>
-        <AIWidget config={config} />
-      </React.StrictMode>
-    );
-  } else {
-    root.render(
-      <React.StrictMode>
-        <App />
-      </React.StrictMode>
-    );
+  if (!rootElement) {
+    rootElement = document.createElement('div');
+    rootElement.id = 'estimate-ai-root';
+    document.body.appendChild(rootElement);
   }
-} else {
+
   const root = ReactDOM.createRoot(rootElement);
   
-  // Standard app mount
-  const isWidgetOnly = (window as any).ESTIMATE_AI_WIDGET_ONLY === true;
-  const config = (window as any).ESTIMATE_AI_CONFIG as BusinessConfig;
+  // URL Parameter Detection for Iframe Support
+  const urlParams = new URLSearchParams(window.location.search);
+  const configParam = urlParams.get('config');
+  const isWidgetMode = urlParams.get('widget') === 'true';
+
+  let config = (window as any).ESTIMATE_AI_CONFIG as BusinessConfig;
+  
+  if (configParam) {
+    try {
+      // Decode base64 configuration from URL
+      config = JSON.parse(decodeURIComponent(escape(atob(configParam))));
+    } catch (e) {
+      console.error("Failed to parse config from URL parameters:", e);
+    }
+  }
+
+  const isWidgetOnly = (window as any).ESTIMATE_AI_WIDGET_ONLY === true || isWidgetMode;
 
   if (isWidgetOnly && config) {
+    // Enable transparent background for the iframe container
+    document.body.classList.add('widget-mode');
+    
     root.render(
       <React.StrictMode>
         <AIWidget config={config} />
@@ -52,4 +50,11 @@ if (!rootElement) {
       </React.StrictMode>
     );
   }
+};
+
+// Use DOMContentLoaded to ensure we run after body exists
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
 }
