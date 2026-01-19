@@ -3,15 +3,18 @@ import { createClient } from '@supabase/supabase-js';
 
 // Fallback logic: check environment, then localStorage
 export const getSupabaseConfig = () => {
-  const envUrl = process.env.SUPABASE_URL;
-  const envKey = process.env.SUPABASE_ANON_KEY;
+  // Defensive check for 'process' to prevent crashing in browser-only environments
+  const env = typeof process !== 'undefined' ? process.env : {};
+  
+  const envUrl = env.SUPABASE_URL;
+  const envKey = env.SUPABASE_ANON_KEY;
   
   const localUrl = localStorage.getItem('SUPABASE_URL');
   const localKey = localStorage.getItem('SUPABASE_ANON_KEY');
 
   // Check for valid Supabase URLs
   const isValidUrl = (url: string | null | undefined) => 
-    url && url.startsWith('https://') && url.includes('.supabase.co');
+    url && typeof url === 'string' && url.startsWith('https://') && url.includes('.supabase.co');
 
   const url = isValidUrl(localUrl) ? localUrl : (isValidUrl(envUrl) ? envUrl : null);
   const key = localKey ? localKey : (envKey && envKey !== 'your-anon-key-here' ? envKey : null);
@@ -37,7 +40,6 @@ export const isSupabaseConfigured = () => {
 
 /**
  * Updates the configuration without reloading the page.
- * This is crucial for sandboxed environments where a reload might break the session.
  */
 export const updateSupabaseConfig = (url: string, key: string) => {
   if (!url.startsWith('https://')) {
