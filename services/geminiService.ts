@@ -183,7 +183,8 @@ export const copywriterAgent = async (ai: GoogleGenAI, businessData: any) => {
  */
 export const performMasterScan = async (url: string, customInstruction?: string): Promise<Partial<BusinessConfig>> => {
   return retryRequest(async () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Correctly initializing GoogleGenAI according to guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     // Step 1: Initial Investigation
     const { data: invData, sources } = await investigatorAgent(ai, url, customInstruction || '');
@@ -207,7 +208,8 @@ export const performMasterScan = async (url: string, customInstruction?: string)
 
 export const getEstimate = async (task: EstimateTask, config: BusinessConfig): Promise<EstimationResult> => {
   return retryRequest(async () => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+    // Correctly initializing GoogleGenAI according to guidelines
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     const availableUpsells = (config.curatedRecommendations || []).filter(u => u.isApproved);
     const upsellContext = availableUpsells.map(u => `ID: ${u.id}, Label: ${u.label}, Description: ${u.description}`).join('\n');
