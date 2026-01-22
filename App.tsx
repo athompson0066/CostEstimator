@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -68,13 +67,10 @@ const App: React.FC = () => {
   const [activeWidgetId, setActiveWidgetId] = useState<string | null>(null);
   const [cloudEnabled, setCloudEnabled] = useState(false);
   const [loadingAgent, setLoadingAgent] = useState<string | null>(null);
-  const [isSyncingSheet, setIsSyncingSheet] = useState(false);
   const [csvInput, setCsvInput] = useState('');
   const [testPrompt, setTestPrompt] = useState('');
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<any>(null);
-
-  const lastSyncedUrl = useRef<string>('');
 
   useEffect(() => {
     try {
@@ -155,7 +151,6 @@ const App: React.FC = () => {
     if (cloudEnabled && !id.startsWith('local-')) supabase.from('widgets').delete().eq('id', id).then();
   };
 
-  // AGENT ACTIONS
   const deployInvestigator = async () => {
     if (!urlToScan) return alert("Enter a URL first.");
     setLoadingAgent('investigator');
@@ -206,7 +201,7 @@ const App: React.FC = () => {
     });
     setConfig(prev => ({ ...prev, manualPriceList: [...prev.manualPriceList, ...newList] }));
     setCsvInput('');
-    alert(`Imported ${newList.length} items.`);
+    alert(`Imported ${newList.length} items to rate sheet.`);
   };
 
   const testPricingLogic = async () => {
@@ -217,7 +212,7 @@ const App: React.FC = () => {
       const res = await getEstimate({ description: testPrompt, zipCode: '90210', urgency: 'within-3-days' }, config);
       setTestResult(res);
     } catch (e) {
-      alert("Testing failed. Check console.");
+      alert("Testing failed. Check console for error details.");
     } finally {
       setTestLoading(false);
     }
@@ -235,7 +230,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 overflow-hidden">
-      {/* Sidebar */}
       <aside className="w-full md:w-80 bg-slate-900 text-white p-6 flex flex-col shrink-0 z-20">
         <div className="flex items-center space-x-3 mb-10">
           <div className="bg-indigo-600 p-2 rounded-xl shadow-lg">
@@ -246,7 +240,7 @@ const App: React.FC = () => {
         
         <nav className="flex-1 space-y-1 overflow-y-auto no-scrollbar">
           <button onClick={() => setActiveTab('dashboard')} className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeTab === 'dashboard' ? 'bg-indigo-600 shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}>Client Dashboard</button>
-          <div className="pt-6 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">The Crew</div>
+          <div className="pt-6 pb-2 px-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Construction Crew</div>
           <button onClick={() => setActiveTab('crew')} className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeTab === 'crew' ? 'bg-indigo-600 shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}>AI Agents</button>
           <button onClick={() => setActiveTab('services')} className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeTab === 'services' ? 'bg-indigo-600 shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}>Pricing Logic</button>
           <button onClick={() => setActiveTab('design')} className={`w-full text-left px-4 py-3 rounded-xl transition-all ${activeTab === 'design' ? 'bg-indigo-600 shadow-lg' : 'text-slate-400 hover:bg-white/5'}`}>Branding</button>
@@ -257,7 +251,6 @@ const App: React.FC = () => {
         <button onClick={saveWidget} className="mt-6 w-full py-4 bg-orange-600 rounded-xl font-black text-xs uppercase tracking-widest shadow-xl hover:brightness-110 active:scale-95 transition-all">Save Business Profile</button>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-8 md:p-12 overflow-y-auto bg-[#f8fafc]">
         <div className="max-w-5xl mx-auto pb-20">
           <AnimatePresence mode="wait">
@@ -286,11 +279,9 @@ const App: React.FC = () => {
 
             {activeTab === 'crew' && (
               <motion.div key="crew" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h1 className="text-4xl font-black tracking-tight">AI Crew Agents</h1>
-                    <p className="text-slate-500 mt-2 font-medium">Deploy 4 specialized agents to build this business logic from scratch.</p>
-                  </div>
+                <div>
+                  <h1 className="text-4xl font-black tracking-tight">AI Crew Agents</h1>
+                  <p className="text-slate-500 mt-2 font-medium">Deploy 4 specialized agents to build this business logic from scratch.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -338,11 +329,9 @@ const App: React.FC = () => {
 
             {activeTab === 'services' && (
               <motion.div key="services" className="space-y-12">
-                <div className="flex justify-between items-end">
-                  <div>
-                    <h1 className="text-4xl font-black tracking-tight">Pricing Engine</h1>
-                    <p className="text-slate-500 mt-2 font-medium">Fine-tune how the AI calculates costs for this specific business.</p>
-                  </div>
+                <div>
+                  <h1 className="text-4xl font-black tracking-tight">Pricing Engine</h1>
+                  <p className="text-slate-500 mt-2 font-medium">Fine-tune how the AI calculates costs for this specific business.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -364,9 +353,7 @@ const App: React.FC = () => {
                   <div className="lg:col-span-2 p-10 bg-white rounded-[3rem] border-2 shadow-sm">
                     <div className="flex justify-between items-center mb-8">
                       <h3 className="text-xl font-black">Itemized Rate Sheet</h3>
-                      <div className="flex gap-2">
-                        <button onClick={() => setConfig({...config, manualPriceList: []})} className="px-4 py-2 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 rounded-lg">Clear All</button>
-                      </div>
+                      <button onClick={() => setConfig({...config, manualPriceList: []})} className="px-4 py-2 text-[10px] font-black uppercase text-red-500 hover:bg-red-50 rounded-lg">Clear All</button>
                     </div>
                     
                     <div className="space-y-3 mb-8">

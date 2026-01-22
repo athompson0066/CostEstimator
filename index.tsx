@@ -22,7 +22,7 @@ const initApp = () => {
   const rootElement = document.getElementById('root');
 
   if (!rootElement) {
-    console.error("Critical Error: Root element '#root' not found.");
+    console.error("Root element not found");
     return;
   }
 
@@ -40,7 +40,7 @@ const initApp = () => {
       try {
         config = JSON.parse(decoded);
       } catch (e) {
-        console.error("JSON parse error for config:", e);
+        console.error("Config JSON parse error:", e);
       }
     }
   }
